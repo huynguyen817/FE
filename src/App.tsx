@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SignJWT } from 'jose';
 
 const ApiTest = () => {
   const [formData, setFormData] = useState({
@@ -29,9 +30,9 @@ const ApiTest = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Hàm lấy token từ localStorage
-  const getToken = () => {
-    return localStorage.getItem("jwtToken") || "";
+  // Hàm lấy token
+  const getToken = async (payload: any /** data's json here */): Promise<string> => {
+    return await new SignJWT(payload).setProtectedHeader({ alg: 'HS256' }).setExpirationTime("1d").sign(new TextEncoder().encode(process.env.REACT_APP_SECRET_JWT));
   };
 
   // Hàm xử lý gửi API
@@ -40,7 +41,7 @@ const ApiTest = () => {
     setResponse(null);
 
     try {
-      const token = getToken(); // Lấy token từ localStorage
+      const token = await getToken({...formData});
 
       const productResponse = await fetch("http://localhost:3000/product/create", {
         method: "POST",
